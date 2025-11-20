@@ -1,4 +1,4 @@
-name: Patch Assembly-CSharp
+name: Patch-Assembly
 
 on:
   workflow_dispatch:
@@ -8,22 +8,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      - name: Install mono
+        run: sudo apt-get update && sudo apt-get install -y mono-complete
+
+      - name: Download original Assembly-CSharp.dll
+        uses: actions/download-artifact@v4
         with:
-          dotnet-version: '8.0.x'
+          name: input
+          path: input
 
-      - name: Restore Patcher
-        run: dotnet restore ./patcher/Patcher.csproj
+      - name: Run patcher
+        run: |
+          mkdir -p patched
+          mono patcher/Patcher.exe input/Assembly-CSharp.dll patched/Assembly-CSharp.dll
 
-      - name: Run Patcher
-        run: dotnet run --project ./patcher/Patcher.cs ./input/Assembly-CSharp.dll ./patched/Assembly-CSharp.patched.dll
-
-      - name: Upload Patched DLL
-        uses: actions/upload-artifact@v3
+      - name: Upload patched file
+        uses: actions/upload-artifact@v4
         with:
-          name: patched-assembly
-          path: ./patched/Assembly-CSharp.patched.dll
+          name: patched
+          path: patched/Assembly-CSharp.dll
