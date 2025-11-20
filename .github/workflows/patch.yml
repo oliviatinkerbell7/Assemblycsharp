@@ -1,0 +1,29 @@
+name: Patch Assembly-CSharp
+
+on:
+  workflow_dispatch:
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Patcher
+        run: dotnet restore ./patcher/Patcher.csproj
+
+      - name: Run Patcher
+        run: dotnet run --project ./patcher/Patcher.cs ./input/Assembly-CSharp.dll ./patched/Assembly-CSharp.patched.dll
+
+      - name: Upload Patched DLL
+        uses: actions/upload-artifact@v3
+        with:
+          name: patched-assembly
+          path: ./patched/Assembly-CSharp.patched.dll
